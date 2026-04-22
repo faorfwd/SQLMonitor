@@ -1,4 +1,4 @@
-USE [msdb]
+﻿USE [msdb]
 GO
 
 IF EXISTS (SELECT * FROM msdb.dbo.sysjobs_view WHERE name = N'(dba) Populate Inventory Tables')
@@ -42,7 +42,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Wrapper-
 		@retry_interval=0, 
 		@os_run_priority=0,
 		@subsystem=N'CmdExec',
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive C:\SQLMonitor\Wrapper-GetHostIpAddresses.ps1 -InventoryServer localhost -InventoryDatabase DBA -CredentialManagerDatabase DBA', 
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive -File "C:\SQLMonitor\Wrapper-GetHostIpAddresses.ps1" -InventoryServer localhost -InventoryDatabase DBA -CredentialManagerDatabase DBA', 
 		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 

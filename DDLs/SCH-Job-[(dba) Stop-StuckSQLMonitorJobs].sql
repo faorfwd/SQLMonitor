@@ -1,4 +1,4 @@
-use msdb
+﻿use msdb
 go
 
 if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Stop-StuckSQLMonitorJobs') and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
@@ -43,7 +43,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Stop-SQL
 		@retry_interval=0, 
 		@os_run_priority=0, 
 		@subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\SQLMonitor\Stop-SQLMonitorJobs-On-AllServers-With-Issues.ps1 -InventoryServer localhost -InventoryDatabase DBA -CredentialManagerDatabase DBA', 
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  -File "C:\SQLMonitor\Stop-SQLMonitorJobs-On-AllServers-With-Issues.ps1" -InventoryServer localhost -InventoryDatabase DBA -CredentialManagerDatabase DBA', 
 		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1

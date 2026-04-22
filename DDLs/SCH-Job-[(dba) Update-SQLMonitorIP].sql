@@ -1,4 +1,4 @@
-use msdb
+﻿use msdb
 go
 
 IF EXISTS (SELECT * FROM msdb.dbo.sysjobs_view WHERE name = N'(dba) Update-SQLMonitorIP')
@@ -41,7 +41,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Update-S
 		@retry_attempts=0, 
 		@retry_interval=0, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\SQLMonitor\Update-SQLMonitorIP.ps1 -UserName "YourNoipUserName"', 
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  -File "C:\SQLMonitor\Update-SQLMonitorIP.ps1" -UserName "YourNoipUserName"', 
 		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1

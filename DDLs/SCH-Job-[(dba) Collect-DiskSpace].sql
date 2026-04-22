@@ -1,4 +1,4 @@
-USE [msdb]
+﻿USE [msdb]
 GO
 
 if exists (select * from msdb.dbo.sysjobs_view where name = N'(dba) Collect-DiskSpace') and APP_NAME() = 'Microsoft SQL Server Management Studio - Query'
@@ -42,7 +42,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Collect-
 		@retry_attempts=1, 
 		@retry_interval=2, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  C:\SQLMonitor\disk-space-collector.ps1 -HostName localhost -SqlInstance localhost -Database DBA -ErrorAction Stop', 
+		@command=N'powershell.exe -executionpolicy bypass -Noninteractive  -File "C:\SQLMonitor\disk-space-collector.ps1" -HostName localhost -SqlInstance localhost -Database DBA -ErrorAction Stop', 
 		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1
