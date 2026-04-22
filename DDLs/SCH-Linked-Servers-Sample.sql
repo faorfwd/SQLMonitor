@@ -7,9 +7,9 @@ EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'YourSqlInstanceNameHere',@use
 GO
 
 -- Major Version is sql2014 or lower, then skip below option
-IF (select left(cast(serverproperty('productversion') as varchar), charindex('.', cast(serverproperty('productversion') as varchar)) - 1)) > 12
-	EXEC master.dbo.sp_serveroption @server=N'YourSqlInstanceNameHere', @optname = 'provider string', @optvalue = 'Encrypt=yes;TrustServerCertificate=yes;User ID=grafana';
-GO
+-- IF (select left(cast(serverproperty('productversion') as varchar), charindex('.', cast(serverproperty('productversion') as varchar)) - 1)) > 12
+-- 	EXEC master.dbo.sp_serveroption @server=N'YourSqlInstanceNameHere', @optname = 'provider string', @optvalue = 'Encrypt=yes;TrustServerCertificate=yes;User ID=grafana';
+-- GO
 
 EXEC master.dbo.sp_serveroption @server=N'YourSqlInstanceNameHere', @optname=N'collation compatible', @optvalue=N'false'
 GO
