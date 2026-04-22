@@ -28,6 +28,8 @@ Full reference for every parameter of `SQLMonitor/Install-SQLMonitor.ps1`. Param
 |---|---|---|---|
 | `SqlCredential` | | Current Windows identity | SQL credential used for CREATE LOGIN, CREATE DATABASE, job creation, etc. Omit to use integrated auth. |
 | `WindowsCredential` | | Current Windows identity | Windows credential used for PSRemoting and wrapped by the SQL Agent proxy. |
+| `GrafanaLoginPassword` | (step 56 on inventory) | | Secure password for the `grafana` SQL login created by step `56__GrafanaLogin`. Required when step 56 is included on the inventory server; optional for non-inventory baselines. Stored securely in `dbo.credential_manager` for use by the `(dba) Check-InstanceAvailability` job. |
+| `RotateGrafanaLoginPassword` | | `$false` | Switch flag to rotate an existing `grafana` login password during re-install. Default behavior (without the flag) leaves an existing login untouched. Use this flag only when you want to change the password. |
 | `DbaGroupMailId` | | | One or more email addresses that Database-Mail jobs send to (dashboard mail, login-expiry mail, stuck-job alerts). Can be a DL or comma-separated list. |
 
 ## Third-party kits
@@ -162,4 +164,26 @@ $commonArgs = @{
     SkipSteps                    = @('7__PerfmonDataCollectorSet','8__SetupCollectorTask')
     ...
 }
+```
+
+### Fresh install with Grafana monitoring
+
+```powershell
+$commonArgs = @{
+    SqlInstanceToBaseline        = 'Prod-Sales-01'
+    HostName                     = 'Prod-Sales-01-VM'
+    InventoryServer              = 'SQLMon-Inv-01'
+    SqlInstanceAsDataDestination = 'Prod-Sales-01'
+    GrafanaLoginPassword         = (Read-Host -AsSecureString "Enter Grafana SQL login password")
+    ...
+}
+.\Install-SQLMonitor.ps1 @commonArgs
+```
+
+### Rotate Grafana password on re-install
+
+```powershell
+.\Install-SQLMonitor.ps1 @commonArgs `
+    -GrafanaLoginPassword (Read-Host -AsSecureString "Enter new Grafana SQL login password") `
+    -RotateGrafanaLoginPassword
 ```
