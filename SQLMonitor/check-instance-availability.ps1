@@ -20,7 +20,6 @@ $modulePath += ';C:\Program Files\WindowsPowerShell\Modules'
 [Environment]::SetEnvironmentVariable('PSModulePath', $modulePath)
 
 Import-Module dbatools
-Import-Module PoshRSJob -WarningAction Continue;
 
 $ErrorActionPreference = 'Stop'
 $currentTime = Get-Date
@@ -55,7 +54,7 @@ select @function_name, @function_call_arguments, @server, @error, @executor_prog
 
     # Loop through each SQLInstance
     $blockGetServerHealth = {
-        $sqlInstanceDetails = $_;
+        param($sqlInstanceDetails, $ClientAppName)
         $sqlInstance = $sqlInstanceDetails.sql_instance
         if([String]::IsNullOrEmpty($sqlInstanceDetails.sql_instance_port)) {
             $sqlInstanceWithPort = $sqlInstance
@@ -63,29 +62,32 @@ select @function_name, @function_call_arguments, @server, @error, @executor_prog
             $sqlInstanceWithPort = "$sqlInstance,$($sqlInstanceDetails.sql_instance_port)"
         }
         $dbaDatabase = $sqlInstanceDetails.database
-    
-        #"`$sqlInstance => $sqlInstance"
 
         Import-Module dbatools
         $conSqlInstanceWithPort = Connect-DbaInstance -SqlInstance $sqlInstanceWithPort -Database master -ClientName $ClientAppName -TrustServerCertificate -EncryptConnection
-        $conSqlInstanceWithPort | Invoke-DbaQuery -Database $database -Query "select [sql_instance] = '$sqlInstance', [database] = db_name();" -EnableException;
+        $conSqlInstanceWithPort | Invoke-DbaQuery -Database $dbaDatabase -Query "select [sql_instance] = '$sqlInstance', [database] = db_name();" -EnableException
     }
 
-    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Start RSJobs with $Threads threads.." | Write-Output
+    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Start jobs with $Threads threads.." | Write-Output
     $jobs = @()
-    $jobs += $supportedInstances | Start-RSJob -Name {"$($_.sql_instance)"} -ScriptBlock $blockGetServerHealth -Throttle $Threads
-    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Waiting for RSJobs to complete.." | Write-Verbose
-    $jobs | Wait-RSJob -ShowProgress -Timeout 1200 -Verbose:$false | Out-Null
+    foreach ($instance in $supportedInstances) {
+        while (($jobs | Where-Object State -eq 'Running').Count -ge $Threads) {
+            Start-Sleep -Milliseconds 500
+        }
+        $jobs += Start-Job -Name $instance.sql_instance -ScriptBlock $blockGetServerHealth -ArgumentList $instance, $ClientAppName
+    }
+    "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Waiting for jobs to complete.." | Write-Verbose
+    $jobs | Wait-Job -Timeout 1200 | Out-Null
 
     $jobs_timedout = @()
     $jobs_timedout += $jobs | Where-Object {$_.State -in ('NotStarted','Running','Stopping')}
     $jobs_success = @()
-    $jobs_success += $jobs | Where-Object {$_.State -eq 'Completed' -and $_.HasErrors -eq $false}
+    $jobs_success += $jobs | Where-Object {$_.State -eq 'Completed' -and $_.ChildJobs[0].Error.Count -eq 0}
     $jobs_fail = @()
-    $jobs_fail += $jobs | Where-Object {$_.HasErrors -or $_.State -in @('Disconnected')}
+    $jobs_fail += $jobs | Where-Object {$_.State -eq 'Failed' -or ($_.State -eq 'Completed' -and $_.ChildJobs[0].Error.Count -gt 0)}
 
     $jobsResult = @()
-    $jobsResult += $jobs_success | Receive-RSJob -Verbose:$false
+    $jobsResult += $jobs_success | Receive-Job
     
     if($jobs_success.Count -gt 0) {
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Below jobs finished without error.." | Write-Output
@@ -97,7 +99,7 @@ select @function_name, @function_call_arguments, @server, @error, @executor_prog
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(ERROR)","Some jobs timed out. Could not completed in 20 minutes." | Write-Output
         $jobs_timedout | Format-Table -AutoSize | Out-String | Write-Output
         "{0} {1,-10} {2}" -f "($((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')))","(INFO)","Stop timedout jobs.." | Write-Output
-        $jobs_timedout | Stop-RSJob
+        $jobs_timedout | Stop-Job
     }
 
     if($jobs_fail.Count -gt 0)
@@ -128,7 +130,7 @@ select @function_name, @function_call_arguments, @server, @error, @executor_prog
 
             Write-Debug "Inside failed job loop"
 
-            $exceptionMessage = $job.Error.Exception.Message
+            $exceptionMessage = $job.ChildJobs[0].Error[0].Exception.Message
             $garbageText = 'Exception calling "EndInvoke" with "1" argument(s): '
             $errorParams = [ordered]@{
                 function_name = $ClientAppName
@@ -159,7 +161,7 @@ select @function_name, @function_call_arguments, @server, @error, @executor_prog
                         -EnableException -ErrorAction Stop -SqlParameter $errorParams
         }
     }
-    $jobs | Remove-RSJob -Verbose:$false
+    $jobs | Remove-Job
 
     #throw $errMessage
 
