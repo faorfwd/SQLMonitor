@@ -1,7 +1,7 @@
 USE [master]
 GO
 
-EXEC master.dbo.sp_addlinkedserver @server = N'YourSqlInstanceNameHere', @srvproduct=N'', @provider=N'SQLNCLI', @datasrc=N'YourSqlInstanceNameHere', @catalog=N'DBA'
+EXEC master.dbo.sp_addlinkedserver @server = N'YourSqlInstanceNameHere', @srvproduct=N'', @provider=N'MSOLEDBSQL', @datasrc=N'YourSqlInstanceNameHere', @catalog=N'DBA'
 
 EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'YourSqlInstanceNameHere',@useself=N'False',@locallogin=NULL,@rmtuser=N'grafana',@rmtpassword=@GrafanaLoginPassword
 GO
