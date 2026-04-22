@@ -47,9 +47,34 @@ if($supportedInstances.Count -gt 0) {
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Below SQLInstances found in dbo.instance_details-"
     "`n($(($supportedInstances.sql_instance|%{"'$_'"}) -join ','))`n"
 
-    # Create Grafana Credential
+    # Create Grafana Credential via usp_get_credential with try/catch fallback
     $username = "grafana"
-    $password = ConvertTo-SecureString "grafana" -AsPlainText -Force
+    $password = $null
+
+    try {
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Fetching grafana credential from usp_get_credential.."
+        $sqlGetCredential = @"
+declare @password varchar(256) = null;
+exec dbo.usp_get_credential @user_name = 'grafana', @password = @password output;
+select @password as password;
+"@
+        $credentialResult = $conInventoryServer | Invoke-DbaQuery -Database $InventoryDatabase -Query $sqlGetCredential -EnableException
+        $password = $credentialResult.password
+
+        if ([String]::IsNullOrEmpty($password)) {
+            throw "Password returned null from usp_get_credential"
+        }
+
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "Successfully retrieved grafana credential from usp_get_credential."
+    }
+    catch {
+        # TEMPORARY FALLBACK: Use hardcoded password during transition period
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Failed to fetch credential from usp_get_credential: $_"
+        "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'WARNING:', "Using hardcoded password as TEMPORARY FALLBACK."
+        $password = "grafana"
+    }
+
+    $password = ConvertTo-SecureString $password -AsPlainText -Force
     $sqlCredential = New-Object System.Management.Automation.PSCredential -ArgumentList ($username, $password)
 
     $sqlAddErrorLogEntry = @"

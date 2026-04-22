@@ -16,12 +16,13 @@ $params = @{
     #RetentionDays = 7
     DbaToolsFolderPath = 'D:\Github\dbatools' # Download using Save-Module command
     #FirstResponderKitZipFile = 'D:\Softwares\SQL-Server-First-Responder-Kit-20231010.zip' # Download from Releases section
-    #DarlingDataZipFile = 'D:\Softwares\DarlingData-main.zip' # Download from Code dropdown    
+    #DarlingDataZipFile = 'D:\Softwares\DarlingData-main.zip' # Download from Code dropdown
     #OlaHallengrenSolutionZipFile = 'D:\Github\sql-server-maintenance-solution-master.zip' # Download from Code dropdown
     #RemoteSQLMonitorPath = 'C:\SQLMonitor'
     InventoryServer = 'SQLMonitor'
     InventoryDatabase = 'DBA'
     DbaGroupMailId = 'dba_team@gmail.com'
+    GrafanaLoginPassword = (Read-Host -AsSecureString "Enter Grafana login password:")
     #SqlCredential = $personal
     #WindowsCredential = $DomainCredential
     <#

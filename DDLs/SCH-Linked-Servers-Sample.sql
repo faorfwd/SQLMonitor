@@ -1,9 +1,11 @@
 USE [master]
 GO
 
+declare @GrafanaLoginPassword nvarchar(256) = N'your-grafana-password-here';
+
 EXEC master.dbo.sp_addlinkedserver @server = N'YourSqlInstanceNameHere', @srvproduct=N'', @provider=N'SQLNCLI', @datasrc=N'YourSqlInstanceNameHere', @catalog=N'DBA'
 
-EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'YourSqlInstanceNameHere',@useself=N'False',@locallogin=NULL,@rmtuser=N'grafana',@rmtpassword='grafana'
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'YourSqlInstanceNameHere',@useself=N'False',@locallogin=NULL,@rmtuser=N'grafana',@rmtpassword=@GrafanaLoginPassword
 GO
 
 -- Major Version is sql2014 or lower, then skip below option

@@ -117,6 +117,36 @@ rg -n "@rmtpassword='grafana'" Sql-Queries/ DDLs/    # 0 results
 - dbatools `New-DbaLogin`, `Set-DbaLogin`, `Copy-DbaLogin` — already used in `Install-SQLMonitor.ps1`.
 - SQLCMD-variable parameterization — per [docs/architecture/collection-layer-decisions.md](docs/architecture/collection-layer-decisions.md) Decision 4.
 
+## Implementation Details
+
+### Non-sysadmin SQL Agent deployment (§5.3, delegate_login_01)
+
+The step `56__GrafanaLogin` in the installer creates the Grafana credential row in `dbo.credential_manager` on the inventory server. When `(dba) Check-InstanceAvailability` job executes on monitored instances and calls `dbo.usp_get_credential` via the inventory's linked server, the stored procedure uses **signed-procedure delegation** to retrieve the password without requiring the caller (SQL Agent service account) to be `SYSADMIN`.
+
+**How it works:**
+
+- `dbo.usp_get_credential` is signed with a certificate (`[cert_SQLMonitorDbo]`).
+- The certificate grants `IMPERSONATE` permission on a SQL Agent operator named `delegate_login_01` (created by step `56__GrafanaLogin`).
+- When SQL Agent (non-sysadmin) calls `usp_get_credential`, the procedure executes under the `delegate_login_01` operator context and can read `dbo.credential_manager` rows that belong to `@server_ip='*'`.
+- **Benefit:** Operators can demote SQL Agent off `SYSADMIN` and still have the monitoring job retrieve the Grafana credential securely. If demoted, the operator must ensure the job's account has `execute` on the signed procedure and is listed in the certificate's delegation chain (documented in credential-manager deployment notes).
+
+### TEMPORARY FALLBACK in check-instance-availability.ps1 (R7, R9)
+
+[SQLMonitor/check-instance-availability.ps1:71-75](SQLMonitor/check-instance-availability.ps1#L71-L75) contains a **TEMPORARY FALLBACK** that uses the hardcoded literal `"grafana"` password if the `dbo.usp_get_credential` call fails.
+
+**Reason:** During the transition to this version, existing deployments may not yet have run the installer's step `56__GrafanaLogin`, meaning `dbo.credential_manager` will be empty. The fallback allows the job to keep running without breaking.
+
+**Removal plan:**
+
+1. This fallback is **intentional and temporary** — kept for one release cycle only to avoid breaking existing installations during rollout.
+2. Once all production deployments have been upgraded and `dbo.credential_manager` is seeded via the installer, the fallback must be removed:
+   - Delete the `catch` block (lines 70-75).
+   - Replace with a strict `throw` that fails loudly if the credential is not found, forcing operators to run the installer.
+3. **When to remove:** After the next scheduled maintenance window when all instances are confirmed to have run step `56__GrafanaLogin`. A follow-up commit will be tagged as `CLEANUP_fallback_removed_v<next-version>`.
+4. **Until then:** The fallback logs a `Write-Warning` to instruct the operator to re-run the installer.
+
+---
+
 ## Next step
 
 Run `/kyos:tech` to produce the technical design for the implementation (parameter validation placement, exact dbatools calls, credential_manager upsert semantics, fallback-and-remove plan for `check-instance-availability.ps1`).

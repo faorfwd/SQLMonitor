@@ -1,7 +1,3 @@
-use [master]
-if not exists (select * from sys.syslogins where name = 'grafana')
-	exec('create login [grafana] with password=N''grafana'', default_database=[DBA], check_expiration=off, check_policy=off');
-go
 
 use [master];
 if exists (select * from sys.sysusers where name = 'grafana')
