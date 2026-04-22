@@ -110,6 +110,7 @@ nav:
       - Data Flow: architecture/data-flow.md
       - Components: architecture/components.md
       - Data Model: architecture/data-model.md
+      - Collection Layer Decisions: architecture/collection-layer-decisions.md
   - Deployment:
       - deployment/index.md
       - Prerequisites: deployment/prerequisites.md
