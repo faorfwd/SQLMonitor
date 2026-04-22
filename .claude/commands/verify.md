@@ -1,5 +1,14 @@
 # /kyos:verify
 
-Verify behavior against the spec and plan. If it passes, suggest deleting any completed working spec files that are no longer useful.
+This command is managed by kyos-cli.
 
-Next cycle: [/kyos:spec](./spec.md)
+You can:
+
+- Add repo-specific notes/rules below to enrich the managed version, or
+- Replace this file entirely and (optionally) remove the “Full definition” link to rely only on yours.
+
+- Full definition: [../../.kyos/claude/commands/verify.md](../../.kyos/claude/commands/verify.md)
+
+## Local additions
+
+Add any repo-specific guidance here.

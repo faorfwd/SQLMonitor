@@ -1,5 +1,14 @@
 # /kyos:tech
 
-Turn the spec into an engineering plan: approach, data/contracts, risk list, and test strategy.
+This command is managed by kyos-cli.
 
-Next: [/kyos:tasks](./tasks.md)
+You can:
+
+- Add repo-specific notes/rules below to enrich the managed version, or
+- Replace this file entirely and (optionally) remove the “Full definition” link to rely only on yours.
+
+- Full definition: [../../.kyos/claude/commands/tech.md](../../.kyos/claude/commands/tech.md)
+
+## Local additions
+
+Add any repo-specific guidance here.

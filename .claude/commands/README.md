@@ -1,11 +1,14 @@
-# Local Commands
+# Kyos Commands
 
-This folder is for repo-owned workflow prompts (slash-style commands).
+This command is managed by kyos-cli.
 
-Recommended daily flow:
+You can:
 
-`/kyos:spec -> /kyos:tech -> /kyos:tasks -> /kyos:implement -> /kyos:verify`
+- Add repo-specific notes/rules below to enrich the managed version, or
+- Replace this file entirely and (optionally) remove the “Full definition” link to rely only on yours.
 
-If you’re new to the repo or about to run tooling/scripts, start with:
+- Full definition: [../../.kyos/claude/commands/README.md](../../.kyos/claude/commands/README.md)
 
-`/kyos:prevalidate`
+## Local additions
+
+Add any repo-specific guidance here.

@@ -1,5 +1,14 @@
 # /kyos:tasks
 
-Break the plan into ordered slices that can be implemented and verified safely.
+This command is managed by kyos-cli.
 
-Next: [/kyos:implement](./implement.md)
+You can:
+
+- Add repo-specific notes/rules below to enrich the managed version, or
+- Replace this file entirely and (optionally) remove the “Full definition” link to rely only on yours.
+
+- Full definition: [../../.kyos/claude/commands/tasks.md](../../.kyos/claude/commands/tasks.md)
+
+## Local additions
+
+Add any repo-specific guidance here.

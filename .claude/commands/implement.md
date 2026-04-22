@@ -1,5 +1,14 @@
 # /kyos:implement
 
-Implement one slice at a time. Keep changes reviewable and run the smallest relevant verification each slice.
+This command is managed by kyos-cli.
 
-Next: [/kyos:verify](./verify.md)
+You can:
+
+- Add repo-specific notes/rules below to enrich the managed version, or
+- Replace this file entirely and (optionally) remove the “Full definition” link to rely only on yours.
+
+- Full definition: [../../.kyos/claude/commands/implement.md](../../.kyos/claude/commands/implement.md)
+
+## Local additions
+
+Add any repo-specific guidance here.
