@@ -45,14 +45,16 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'dbo.usp_
 		@retry_interval=1, 
 		@os_run_priority=0, 
 		@subsystem=N'TSQL', 
-		@command=N'EXEC dbo.usp_capture_alert_messages
+		@command=N'DECLARE @e BIT = 1; SELECT @e = ISNULL(CONVERT(BIT, param_value), 1) FROM [sqlmonitor_inventory_server].[DBA].dbo.sma_params WHERE param_key = ''email_delivery_enabled'';
+EXEC dbo.usp_capture_alert_messages
 				@server_name = ''$(ESCAPE_SQUOTE(A-SVR))'',
-				@database_name = ''$(ESCAPE_SQUOTE(A-DBN))'', 
-				@error_number = $(ESCAPE_NONE(A-ERR)), 
-				@error_severity = $(ESCAPE_NONE(A-SEV)), 
-				@error_message = ''$(ESCAPE_SQUOTE(A-MSG))'', 
+				@database_name = ''$(ESCAPE_SQUOTE(A-DBN))'',
+				@error_number = $(ESCAPE_NONE(A-ERR)),
+				@error_severity = $(ESCAPE_NONE(A-SEV)),
+				@error_message = ''$(ESCAPE_SQUOTE(A-MSG))'',
 				@host_instance = ''$(ESCAPE_SQUOTE(SRVR))'',
-				@recipients = ''dba_team@gmail.com'';', 
+				@recipients = ''dba_team@gmail.com'',
+				@email_delivery_enabled = @e;',
 		@database_name=N'DBA', 
 		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback

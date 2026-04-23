@@ -21,7 +21,8 @@ CREATE OR ALTER PROCEDURE [dbo].[usp_TempDbSaver]
 	 @first_x_rows int = 10,
 	 @drop_create_table bit = 0,
 	 @retention_days int = 15,
-	 @purge_table bit = 1
+	 @purge_table bit = 1,
+	 @email_delivery_enabled BIT = 1
 )
 AS
 BEGIN
@@ -60,12 +61,6 @@ BEGIN
 	DECLARE @_is_gb_threshold_valid bit = 0;
 	DEclare @_thresholds_validated bit = 0;
 
-	DECLARE @email_delivery_enabled BIT = ISNULL(
-	    (SELECT TOP 1 CONVERT(BIT, param_value)
-	     FROM dbo.sma_params
-	     WHERE param_key = 'email_delivery_enabled'),
-	    1
-	);
 	IF @email_delivery_enabled = 0 SET @send_email = 0;
 
 	SET @_params = N'@collection_time datetime2';

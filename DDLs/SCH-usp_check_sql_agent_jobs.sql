@@ -25,7 +25,8 @@ CREATE OR ALTER PROCEDURE [dbo].[usp_check_sql_agent_jobs]
 	@consider_disabled_jobs bit = 1, /* fetch history for disabled jobs also */
 	@drop_recreate bit = 0, /* drop & recreate tables */
 	@is_test_alert bit = 0, /* enable for alert testing */
-	@verbose tinyint = 0 /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */	
+	@verbose tinyint = 0, /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */
+	@email_delivery_enabled BIT = 1
 )
 AS 
 BEGIN
@@ -93,12 +94,6 @@ BEGIN
 			@_errorLine int,
 			@_errorMessage nvarchar(4000);
 
-	DECLARE @email_delivery_enabled BIT = ISNULL(
-	    (SELECT TOP 1 CONVERT(BIT, param_value)
-	     FROM dbo.sma_params
-	     WHERE param_key = 'email_delivery_enabled'),
-	    1
-	);
 	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	BEGIN TRY

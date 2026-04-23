@@ -42,7 +42,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'usp_chec
 		@retry_attempts=1, 
 		@retry_interval=1, 
 		@os_run_priority=0, @subsystem=N'CmdExec', 
-		@command=N'sqlcmd -C -E -b -S localhost -H "(dba) Check-SQLAgentJobs" -d DBA -Q "EXEC dbo.usp_check_sql_agent_jobs @default_mail_recipient = ''dba_team@gmail.com'';"', 
+		@command=N'sqlcmd -C -E -b -S localhost -H "(dba) Check-SQLAgentJobs" -d DBA -Q "DECLARE @e BIT = 1; SELECT @e = ISNULL(CONVERT(BIT, param_value), 1) FROM [sqlmonitor_inventory_server].[DBA].dbo.sma_params WHERE param_key = ''email_delivery_enabled''; EXEC dbo.usp_check_sql_agent_jobs @default_mail_recipient = ''dba_team@gmail.com'', @email_delivery_enabled = @e;"',
 		@flags=40
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1

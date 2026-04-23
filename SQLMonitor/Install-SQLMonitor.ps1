@@ -4586,6 +4586,7 @@ if($stepName -in $Steps2Execute)
     $sqlCreateJobRunLogSaver = $sqlCreateJobRunLogSaver.Replace('-S localhost', "-S `"$sqlInstanceOnJobStep`"")
     $sqlCreateJobRunLogSaver = $sqlCreateJobRunLogSaver.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobRunLogSaver = $sqlCreateJobRunLogSaver.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
+    $sqlCreateJobRunLogSaver = $sqlCreateJobRunLogSaver.Replace('sqlmonitor_inventory_server', $InventoryServer)
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobRunLogSaver = $sqlCreateJobRunLogSaver.Replace($jobName, $jobNameNew)
     }
@@ -4706,6 +4707,7 @@ if($stepName -in $Steps2Execute)
     $sqlCreateJobRunTempDbSaver = $sqlCreateJobRunTempDbSaver.Replace('-S localhost', "-S `"$sqlInstanceOnJobStep`"")
     $sqlCreateJobRunTempDbSaver = $sqlCreateJobRunTempDbSaver.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobRunTempDbSaver = $sqlCreateJobRunTempDbSaver.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
+    $sqlCreateJobRunTempDbSaver = $sqlCreateJobRunTempDbSaver.Replace('sqlmonitor_inventory_server', $InventoryServer)
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobRunTempDbSaver = $sqlCreateJobRunTempDbSaver.Replace($jobName, $jobNameNew)
     }
@@ -5692,6 +5694,7 @@ if($stepName -in $Steps2Execute -and $isExpressEdition -eq $false)
     $sqlCreateJobCheckSQLAgentJobs = $sqlCreateJobCheckSQLAgentJobs.Replace('-S localhost', "-S `"$sqlInstanceOnJobStep`"")
     $sqlCreateJobCheckSQLAgentJobs = $sqlCreateJobCheckSQLAgentJobs.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCheckSQLAgentJobs = $sqlCreateJobCheckSQLAgentJobs.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
+    $sqlCreateJobCheckSQLAgentJobs = $sqlCreateJobCheckSQLAgentJobs.Replace('sqlmonitor_inventory_server', $InventoryServer)
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobCheckSQLAgentJobs = $sqlCreateJobCheckSQLAgentJobs.Replace($jobName, $jobNameNew)
     }
@@ -5803,6 +5806,7 @@ if($stepName -in $Steps2Execute)
     $sqlCreateJobCaptureAlertMessages = $sqlCreateJobCaptureAlertMessages.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCaptureAlertMessages = $sqlCreateJobCaptureAlertMessages.Replace("@database_name=N'DBA'", "@database_name=N'$DbaDatabase'")
     $sqlCreateJobCaptureAlertMessages = $sqlCreateJobCaptureAlertMessages.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
+    $sqlCreateJobCaptureAlertMessages = $sqlCreateJobCaptureAlertMessages.Replace('sqlmonitor_inventory_server', $InventoryServer)
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobCaptureAlertMessages = $sqlCreateJobCaptureAlertMessages.Replace($jobName, $jobNameNew)
     }

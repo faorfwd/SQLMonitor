@@ -22,7 +22,8 @@ CREATE OR ALTER PROCEDURE [dbo].[usp_LogSaver]
 	@kill_spids bit = 0,
 	@send_email bit = 0,
 	@skip_autogrowth_validation bit = 0,
-	@verbose tinyint = 0 /* 1 => messages, 2 => messages + table results */
+	@verbose tinyint = 0, /* 1 => messages, 2 => messages + table results */
+	@email_delivery_enabled BIT = 1
 )
 AS
 BEGIN
@@ -71,12 +72,6 @@ BEGIN
 
 	DECLARE @_tab nchar(1) = CHAR(9);
 
-	DECLARE @email_delivery_enabled BIT = ISNULL(
-	    (SELECT TOP 1 CONVERT(BIT, param_value)
-	     FROM dbo.sma_params
-	     WHERE param_key = 'email_delivery_enabled'),
-	    1
-	);
 	IF @email_delivery_enabled = 0 SET @send_email = 0;
 
 	declare @c_database_name sysname;
