@@ -3859,7 +3859,8 @@ if($stepName -in $Steps2Execute)
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-S localhost', "-S `"$sqlInstanceOnJobStep`"")
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
-   
+    $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace('sqlmonitor_inventory_server', $InventoryServer)
+
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobCollectWaitStats = $sqlCreateJobCollectWaitStats.Replace($jobName, $jobNameNew)
     }
@@ -4101,6 +4102,7 @@ if($stepName -in $Steps2Execute)
     $sqlCreateJobFileIOStats = $sqlCreateJobFileIOStats.Replace('-S localhost', "-S `"$sqlInstanceOnJobStep`"")
     $sqlCreateJobFileIOStats = $sqlCreateJobFileIOStats.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobFileIOStats = $sqlCreateJobFileIOStats.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
+    $sqlCreateJobFileIOStats = $sqlCreateJobFileIOStats.Replace('sqlmonitor_inventory_server', $InventoryServer)
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobFileIOStats = $sqlCreateJobFileIOStats.Replace($jobName, $jobNameNew)
     }
@@ -4824,6 +4826,7 @@ if($stepName -in $Steps2Execute)
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-S localhost', "-S `"$sqlInstanceOnJobStep`"")
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
+    $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('sqlmonitor_inventory_server', $InventoryServer)
     if($isExpressEdition) {
         $sqlRunWhoIsActive = $sqlRunWhoIsActive.Replace('@retention_day = 7,', "@retention_day = 2,")
     }
@@ -5324,6 +5327,7 @@ if($stepName -in $Steps2Execute)
     $sqlCreateJobCollectMemoryClerks = $sqlCreateJobCollectMemoryClerks.Replace('-S localhost', "-S `"$sqlInstanceOnJobStep`"")
     $sqlCreateJobCollectMemoryClerks = $sqlCreateJobCollectMemoryClerks.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCollectMemoryClerks = $sqlCreateJobCollectMemoryClerks.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
+    $sqlCreateJobCollectMemoryClerks = $sqlCreateJobCollectMemoryClerks.Replace('sqlmonitor_inventory_server', $InventoryServer)
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobCollectMemoryClerks = $sqlCreateJobCollectMemoryClerks.Replace($jobName, $jobNameNew)
     }
@@ -5445,6 +5449,7 @@ if($stepName -in $Steps2Execute)
     $sqlCreateJobCollectPrivilegedInfo = $sqlCreateJobCollectPrivilegedInfo.Replace('-S localhost', "-S `"$sqlInstanceOnJobStep`"")
     $sqlCreateJobCollectPrivilegedInfo = $sqlCreateJobCollectPrivilegedInfo.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCollectPrivilegedInfo = $sqlCreateJobCollectPrivilegedInfo.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
+    $sqlCreateJobCollectPrivilegedInfo = $sqlCreateJobCollectPrivilegedInfo.Replace('sqlmonitor_inventory_server', $InventoryServer)
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobCollectPrivilegedInfo = $sqlCreateJobCollectPrivilegedInfo.Replace($jobName, $jobNameNew)
     }
@@ -5565,6 +5570,7 @@ if($stepName -in $Steps2Execute)
     $sqlCreateJobCollectAgHealthState = $sqlCreateJobCollectAgHealthState.Replace('-S localhost', "-S `"$sqlInstanceOnJobStep`"")
     $sqlCreateJobCollectAgHealthState = $sqlCreateJobCollectAgHealthState.Replace('-d DBA', "-d `"$DbaDatabase`"")
     $sqlCreateJobCollectAgHealthState = $sqlCreateJobCollectAgHealthState.Replace("''dba_team@gmail.com''", "''$($DbaGroupMailId -join ';')''" )
+    $sqlCreateJobCollectAgHealthState = $sqlCreateJobCollectAgHealthState.Replace('sqlmonitor_inventory_server', $InventoryServer)
     if($jobNameNew -ne $jobName) {
         $sqlCreateJobCollectAgHealthState = $sqlCreateJobCollectAgHealthState.Replace($jobName, $jobNameNew)
     }
