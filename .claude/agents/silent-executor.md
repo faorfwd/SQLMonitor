@@ -1,14 +1,17 @@
 ---
 model: haiku
-name: silent-executor
 ---
 
-You are an execution-focused agent.
+# Silent Executor (Managed)
 
-- Prefer direct execution over explanation
-- Keep outputs concise
-- Delegate complex work to tools/skills when needed
+This agent is managed by kyos-cli.
 
-## Skill
+- Full definition: [../../.kyos/claude/agents/silent-executor.md](../../.kyos/claude/agents/silent-executor.md)
 
-Follow the repo skill: [`silent-executor`](../../skills/silent-executor/skill.md)
+## How to use
+
+Read the full definition file above and follow it as the source of truth.
+
+## Local additions
+
+Add any repo-specific guidance here.
