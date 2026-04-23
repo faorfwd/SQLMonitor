@@ -1,6 +1,0 @@
-{
-  "framework": "kyos-cli",
-  "managedRoot": ".kyos/claude",
-  "repoName": "SQLMonitor",
-  "version": "0.2.6"
-}
