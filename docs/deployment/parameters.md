@@ -31,6 +31,7 @@ Full reference for every parameter of `SQLMonitor/Install-SQLMonitor.ps1`. Param
 | `GrafanaLoginPassword` | (step 56 on inventory) | | Secure password for the `grafana` SQL login created by step `56__GrafanaLogin`. Required when step 56 is included on the inventory server; optional for non-inventory baselines. Stored securely in `dbo.credential_manager` for use by the `(dba) Check-InstanceAvailability` job. |
 | `RotateGrafanaLoginPassword` | | `$false` | Switch flag to rotate an existing `grafana` login password during re-install. Default behavior (without the flag) leaves an existing login untouched. Use this flag only when you want to change the password. |
 | `DbaGroupMailId` | | | One or more email addresses that Database-Mail jobs send to (dashboard mail, login-expiry mail, stuck-job alerts). Can be a DL or comma-separated list. |
+| `EnableEmailAlerts` | | `$true` | Global kill switch for all `sp_send_dbmail` calls. Set `$false` to suppress every mail notification at runtime without editing individual job steps. When `$false`, the installer also auto-sets `SkipMailProfileCheck=$true` so a missing Database Mail profile is not a blocking error. Stored in `dbo.sma_params` as `email_delivery_enabled`. On upgrade runs, omitting this flag leaves the existing stored value unchanged. |
 
 ## Third-party kits
 

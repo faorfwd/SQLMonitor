@@ -1,8 +1,12 @@
 {
-  "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
+  "permissions": {
+    "allow": [
+      "Bash(rtk find *)",
+      "Bash(rtk grep *)",
+      "Bash(rtk ls *)"
+    ]
   },
-  "hooks":{
+  "hooks": {
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -18,5 +22,8 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
   }
 }
