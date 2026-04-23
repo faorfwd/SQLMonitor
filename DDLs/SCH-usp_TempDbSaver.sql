@@ -9,11 +9,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF OBJECT_ID('dbo.usp_TempDbSaver') IS NULL
-	EXEC('CREATE PROCEDURE dbo.usp_TempDbSaver AS select 1 as dummy;');
-GO
-
-ALTER PROCEDURE [dbo].[usp_TempDbSaver]
+CREATE OR ALTER PROCEDURE [dbo].[usp_TempDbSaver]
 (
 	 @data_used_pct_threshold tinyint = 90,
 	 @data_used_gb_threshold int = null,
@@ -72,6 +68,14 @@ BEGIN
 	VALUES ('sa'),
 			('NT AUTHORITY\SYSTEM');
 	*/
+
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1  -- absent row → treat as enabled
+	);
+	IF @email_delivery_enabled = 0 SET @send_email = 0;
 
 	IF (@verbose > 0)
 		PRINT '('+convert(varchar, getdate(), 21)+') Creating table variable @t_tempdb_consumers..';

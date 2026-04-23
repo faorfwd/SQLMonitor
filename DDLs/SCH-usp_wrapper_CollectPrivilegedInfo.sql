@@ -10,11 +10,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_wrapper_CollectPrivilegedInfo')
-    EXEC ('CREATE PROC dbo.usp_wrapper_CollectPrivilegedInfo AS SELECT ''stub version, to be replaced''')
-GO
-
-ALTER PROCEDURE dbo.usp_wrapper_CollectPrivilegedInfo
+CREATE OR ALTER PROCEDURE dbo.usp_wrapper_CollectPrivilegedInfo
 (	@verbose tinyint = 0, /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */
 	@recipients varchar(500) = 'dba_team@gmail.com', /* Folks who receive the failure mail */
 	@alert_key varchar(100) = 'Wrapper-CollectPrivilegedInfo', /* Subject of Failure Mail */
@@ -63,6 +59,14 @@ BEGIN
 	DECLARE @_job_name nvarchar(500);
 	DECLARE @_continous_failures tinyint = 0;
 	DECLARE @_send_mail bit = 0;
+
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1  -- absent row → treat as enabled
+	);
+	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	SET @_job_name = '(dba) '+@alert_key;
 

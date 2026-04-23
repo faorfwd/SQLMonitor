@@ -10,11 +10,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_run_WhoIsActive')
-    EXEC ('CREATE PROC dbo.usp_run_WhoIsActive AS SELECT ''stub version, to be replaced''')
-GO
-
-ALTER PROCEDURE dbo.usp_run_WhoIsActive
+CREATE OR ALTER PROCEDURE dbo.usp_run_WhoIsActive
 (	@drop_recreate bit = 0, /* Drop and recreate table */
 	@destination_table VARCHAR(4000) = 'dbo.WhoIsActive', /* Destination table Name */
 	@send_error_mail bit = 1, /* Send mail on failure */
@@ -72,6 +68,14 @@ BEGIN
 	DECLARE @_output_column_list VARCHAR(8000);
 	DECLARE @_crlf nchar(2);
 	DECLARE @_tab nchar(1);
+
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1  -- absent row → treat as enabled
+	);
+	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	SET @_crlf = NCHAR(13)+NCHAR(10);
 	SET @_tab = NCHAR(9);

@@ -10,11 +10,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_capture_alert_messages')
-    EXEC ('CREATE PROC dbo.usp_capture_alert_messages AS SELECT ''stub version, to be replaced''')
-GO
-
-ALTER PROCEDURE dbo.usp_capture_alert_messages
+CREATE OR ALTER PROCEDURE dbo.usp_capture_alert_messages
 (	@server_name nvarchar(128) = null, /* Alert Server Name */
 	@database_name nvarchar(128) = null, /* Alert database */
 	@error_number int = 0, /* Alert Error Number */
@@ -66,6 +62,14 @@ BEGIN
 	DECLARE @_job_name nvarchar(500);
 	DECLARE @_continous_failures tinyint = 0;
 	DECLARE @_send_mail bit = 0;
+
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1  -- absent row → treat as enabled
+	);
+	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	SET @_job_name = '(dba) '+@alert_key;
 

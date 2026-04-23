@@ -84,6 +84,14 @@ begin
 				@_errorLine int,
 				@_errorMessage nvarchar(4000);
 
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1  -- absent row → treat as enabled
+	);
+	IF @email_delivery_enabled = 0 SET @send_mail = 0;
+
 	if object_id('tempdb..#vw_all_server_info') is not null
 		drop table #vw_all_server_info;
 	select * into #vw_all_server_info from dbo.vw_all_server_info asi;

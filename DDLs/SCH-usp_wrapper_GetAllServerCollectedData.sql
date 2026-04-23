@@ -10,11 +10,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_wrapper_GetAllServerCollectedData')
-    EXEC ('CREATE PROC dbo.usp_wrapper_GetAllServerCollectedData AS SELECT ''stub version, to be replaced''')
-GO
-
-ALTER PROCEDURE dbo.usp_wrapper_GetAllServerCollectedData
+CREATE OR ALTER PROCEDURE dbo.usp_wrapper_GetAllServerCollectedData
 (	@verbose tinyint = 0, /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */
 	@alert_key varchar(100) = 'Wrapper-GetAllServerCollectedData', /* Subject of Failure Mail */
 	@is_test_alert bit = 0, /* enable for alert testing */
@@ -69,6 +65,7 @@ BEGIN
 	DECLARE @_caller_program nvarchar(255);
 	DECLARE @recipients varchar(500); /* Folks who receive the failure mail */
 	DECLARE @send_error_mail bit; /* Send mail on failure */
+	DECLARE @email_delivery_enabled BIT;
 
 	DECLARE @_parallelize_collection bit = 0;
 	DECLARE @_parallel_threads int = 1;
@@ -88,8 +85,20 @@ BEGIN
 
 	SET @_job_name = '(dba) '+@alert_key;
 
-	select @recipients = p.param_value from dbo.sma_params p where p.param_key = 'dba_team_email_id';
-	select @send_error_mail = convert(bit,p.param_value) from dbo.sma_params p where p.param_key = 'send_sqlmonitor_job_failure_mail';
+	SELECT
+		@recipients              = MAX(CASE WHEN param_key = 'dba_team_email_id'
+		                               THEN param_value END),
+		@send_error_mail         = MAX(CASE WHEN param_key = 'send_sqlmonitor_job_failure_mail'
+		                               THEN CONVERT(BIT, param_value) END),
+		@email_delivery_enabled  = ISNULL(MAX(CASE WHEN param_key = 'email_delivery_enabled'
+		                               THEN CONVERT(BIT, param_value) END), 1)
+	FROM dbo.sma_params
+	WHERE param_key IN (
+		'dba_team_email_id',
+		'send_sqlmonitor_job_failure_mail',
+		'email_delivery_enabled'
+	);
+	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	IF (@recipients IS NULL OR @recipients = 'dba_team@gmail.com') AND @verbose = 0
 		raiserror ('@recipients is mandatory parameter', 20, -1) with log;

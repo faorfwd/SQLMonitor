@@ -10,11 +10,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_check_sql_agent_jobs')
-    EXEC ('CREATE PROC dbo.usp_check_sql_agent_jobs AS SELECT ''stub version, to be replaced''')
-GO
-
-ALTER PROCEDURE [dbo].[usp_check_sql_agent_jobs]
+CREATE OR ALTER PROCEDURE [dbo].[usp_check_sql_agent_jobs]
 (	@job_category_to_include nvarchar(2000) = null, /* Include jobs of only these categories || Delimiter separated list */
 	@job_category_to_exclude nvarchar(2000) = null, /* Execute jobs of these categories || Delimiter separated list */
 	@jobs_to_include nvarchar(2000) = null, /* Include these jobs only */
@@ -78,6 +74,14 @@ BEGIN
 	DECLARE @_output_column_list VARCHAR(8000);
 	DECLARE @_crlf nchar(2);
 	DECLARE @_tab nchar(1);
+
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1  -- absent row → treat as enabled
+	);
+	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	SET @_crlf = NCHAR(13)+NCHAR(10);
 	SET @_tab = N'  '; --NCHAR(9);

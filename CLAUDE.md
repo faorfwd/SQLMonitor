@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Be concise. No explanations unless requested.
+No summaries. No repetition.
+Output only the final result.
+Minimal usage of emojis.
+
 ---
 
 ## Managed bootstrap (kyos-cli)

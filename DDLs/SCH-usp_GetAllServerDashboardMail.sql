@@ -10,11 +10,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_GetAllServerDashboardMail')
-    EXEC ('CREATE PROC dbo.usp_GetAllServerDashboardMail AS SELECT ''stub version, to be replaced''')
-GO
-
-ALTER PROCEDURE dbo.usp_GetAllServerDashboardMail
+CREATE OR ALTER PROCEDURE dbo.usp_GetAllServerDashboardMail
 (	@send_mail bit = 1,
 	@recipients varchar(500) = 'dba_team@gmail.com', /* Folks who receive the failure mail */
 	@mail_subject varchar(500) = 'Monitoring - Live - All Servers', /* Subject of Failure Mail */
@@ -131,6 +127,14 @@ BEGIN
 	declare @_line nvarchar(500);
 	declare @_tab nchar(2) = nchar(9);
 	declare @_crlf nchar(2) = nchar(13);
+
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1  -- absent row → treat as enabled
+	);
+	IF @email_delivery_enabled = 0 SET @send_mail = 0;
 
 	if @verbose > 0
 		print 'Set local variables..';
