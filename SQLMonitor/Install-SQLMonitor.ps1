@@ -189,6 +189,9 @@ Param (
     [bool]$SkipMailProfileCheck = $false,
 
     [Parameter(Mandatory=$false)]
+    [bool]$EnableEmailAlerts = $true,
+
+    [Parameter(Mandatory=$false)]
     [bool]$SkipCollationCheck = $false,
 
     [Parameter(Mandatory=$false)]
@@ -2256,6 +2259,10 @@ else {
 }
 
 
+if (-not $EnableEmailAlerts) {
+    $SkipMailProfileCheck = $true
+}
+
 # Validate mail profile
 if(-not $SkipMailProfileCheck)
 {
@@ -2621,6 +2628,20 @@ if($stepName -in $Steps2Execute)
                 $conInventoryServer | Invoke-DbaQuery -Database $InventoryDatabase -Query $InventorySpecificObjectsFileText -EnableException -Verbose:$false -Debug:$false
             }
         }
+    }
+
+    if ($PSBoundParameters.ContainsKey('EnableEmailAlerts')) {
+        $emailValue  = if ($EnableEmailAlerts) { '1' } else { '0' }
+        $emailReason = "Set by Install-SQLMonitor.ps1 on $(Get-Date -Format 'u')"
+        $sqlUpsert   = @"
+UPDATE dbo.sma_params
+SET    param_value = '$emailValue',
+       remarks     = '$emailReason'
+WHERE  param_key   = 'email_delivery_enabled';
+"@
+        $conInventoryServer |
+            Invoke-DbaQuery -Database $InventoryDatabase -Query $sqlUpsert `
+                            -EnableException -Verbose:$false -Debug:$false
     }
 
     "$(Get-Date -Format yyyyMMMdd_HHmm) {0,-10} {1}" -f 'INFO:', "`$UspCaptureAlertMessagesFilePath = '$UspCaptureAlertMessagesFilePath'"

@@ -10,11 +10,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_collect_file_io_stats')
-    EXEC ('CREATE PROC dbo.usp_collect_file_io_stats AS SELECT ''stub version, to be replaced''')
-GO
-
-ALTER PROCEDURE dbo.usp_collect_file_io_stats
+CREATE OR ALTER PROCEDURE dbo.usp_collect_file_io_stats
 (	@threshold_continous_failure tinyint = 3, /* Send mail only when failure is x times continously */
 	@notification_delay_minutes tinyint = 10, /* Send mail only after a gap of x minutes from last mail */ 
 	@is_test_alert bit = 0, /* enable for alert testing */
@@ -68,6 +64,14 @@ BEGIN
 			@_errorState int,
 			@_errorLine int,
 			@_errorMessage nvarchar(4000);
+
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1
+	);
+	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	BEGIN TRY
 

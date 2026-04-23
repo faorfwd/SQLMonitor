@@ -10,11 +10,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'usp_run_WhoIsActive')
-    EXEC ('CREATE PROC dbo.usp_run_WhoIsActive AS SELECT ''stub version, to be replaced''')
-GO
-
-ALTER PROCEDURE dbo.usp_run_WhoIsActive
+CREATE OR ALTER PROCEDURE dbo.usp_run_WhoIsActive
 (	@drop_recreate bit = 0, /* Drop and recreate table */
 	@destination_table VARCHAR(4000) = 'dbo.WhoIsActive', /* Destination table Name */
 	@send_error_mail bit = 1, /* Send mail on failure */
@@ -97,6 +93,14 @@ BEGIN
 			@_errorState int,
 			@_errorLine int,
 			@_errorMessage nvarchar(4000);
+
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1
+	);
+	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	BEGIN TRY
 		SET @_output += '<br>Start Try Block..'+CHAR(10);

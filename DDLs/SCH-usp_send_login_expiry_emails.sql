@@ -62,6 +62,14 @@ BEGIN
 	declare @url_for_dba_slack_channel varchar(1000) = 'workspace.slack.com/archives/unique_id';
 	declare @dba_login_prefix varchar(20);
 
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1
+	);
+	IF @email_delivery_enabled = 0 SET @send_mail = 0;
+
 	select @dba_team_email_id = p.param_value from dbo.sma_params p where p.param_key = 'dba_team_email_id';
 	select @dba_manager_email_id = p.param_value from dbo.sma_params p where p.param_key = 'dba_manager_email_id';
 	select @sre_vp_email_id = p.param_value from dbo.sma_params p where p.param_key = 'sre_vp_email_id';

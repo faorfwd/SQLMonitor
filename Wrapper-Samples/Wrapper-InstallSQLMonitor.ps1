@@ -60,6 +60,7 @@ $params = @{
     #SkipInventorySteps = $true
     #SkipMultiMailJobSteps = $false
     #SkipMailProfileCheck = $true
+    #EnableEmailAlerts = $false   # uncomment to disable all sp_send_dbmail calls at runtime
     #skipCollationCheck = $true
     #SkipWindowsAdminAccessTest = $true
     #SkipDriveCheck = $true

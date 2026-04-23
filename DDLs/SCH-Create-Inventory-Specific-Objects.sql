@@ -1548,6 +1548,8 @@ begin
 			('smtp_account_name','some_smtp_account@gmail.com','Account having access to SMTP Server'),
 			('alert_sender_email','alert_sender_email@gmail.com','EMail used for sending Email alerts'),
 			('send_sqlmonitor_job_failure_mail','1','When enabled, then job failure mail is send to DBA team'),
+			('email_delivery_enabled','1',
+			 'Global kill switch: 0 disables all sp_send_dbmail calls across SQLMonitor'),
 			('all_server_volatile_info-parallelize','no','When enabled, then volatile info is collected in parallel threads'),
 			('all_server_volatile_info-parallel-threads',convert(varchar,(select case when cpu_count > 4 then 4 else cpu_count end from sys.dm_os_sys_info as osi)),'parallel threads/jobs for Volatile Info collection'),
 			('alert_history_all_servers-parallelize','no','When enabled, then volatile info is collected in parallel threads'),

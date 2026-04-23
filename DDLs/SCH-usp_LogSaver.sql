@@ -9,10 +9,7 @@ SET NUMERIC_ROUNDABORT OFF;
 SET ARITHABORT ON;
 GO
 
-IF OBJECT_ID('dbo.usp_LogSaver') IS NULL
-	EXEC('CREATE PROCEDURE dbo.usp_LogSaver AS select 1 as dummy;');
-GO
-ALTER PROCEDURE [dbo].[usp_LogSaver]
+CREATE OR ALTER PROCEDURE [dbo].[usp_LogSaver]
 (
 	@log_used_pct_threshold tinyint = 80,
 	@log_used_gb_threshold int = NULL,
@@ -73,6 +70,14 @@ BEGIN
 	DECLARE @_transaction_start_time datetime;
 
 	DECLARE @_tab nchar(1) = CHAR(9);
+
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1
+	);
+	IF @email_delivery_enabled = 0 SET @send_email = 0;
 
 	declare @c_database_name sysname;
 	declare @c_recovery_model varchar(50);

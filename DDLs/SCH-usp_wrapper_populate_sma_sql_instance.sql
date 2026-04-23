@@ -40,6 +40,14 @@ begin
 	declare @noc_email_id varchar(125) = 'noc@gmail.com' /* NOC team */
 	declare @url_for_GrafanaDashboardPortal varchar(1000) = 'http://localhost:3000/d/';
 
+	DECLARE @email_delivery_enabled BIT = ISNULL(
+	    (SELECT TOP 1 CONVERT(BIT, param_value)
+	     FROM dbo.sma_params
+	     WHERE param_key = 'email_delivery_enabled'),
+	    1
+	);
+	IF @email_delivery_enabled = 0 SET @send_mail = 0;
+
 	select @dba_team_email_id = p.param_value from dbo.sma_params p where p.param_key = 'dba_team_email_id';
 	select @dba_manager_email_id = p.param_value from dbo.sma_params p where p.param_key = 'dba_manager_email_id';
 	select @sre_vp_email_id = p.param_value from dbo.sma_params p where p.param_key = 'sre_vp_email_id';

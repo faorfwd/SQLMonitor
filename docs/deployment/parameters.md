@@ -72,6 +72,7 @@ Fine-grained flags to opt out of specific validations or re-run specific steps d
 | `SkipMultiServerviewsUpgrade` | `$true` | Do not reshape multi-server views during upgrade. |
 | `SkipWindowsAdminAccessTest` | `$false` | Skip the admin-rights precheck on the monitored host. |
 | `SkipMailProfileCheck` | `$false` | Don't fail if Database Mail isn't configured on the inventory. |
+| `EnableEmailAlerts` | `$true` | Global kill switch for all `sp_send_dbmail` calls. Set `$false` to disable every mail-sending proc at runtime; also auto-sets `SkipMailProfileCheck=$true` so the installer skips mail-profile validation. |
 | `SkipCollationCheck` | `$false` | Skip the collation match check between monitored and inventory instances. |
 | `SkipPageCompression` | `$false` | Skip step `55__EnablePageCompression`. |
 | `SkipDriveCheck` | `$false` | Skip drive-space pre-check. |
