@@ -1,4 +1,11 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(rtk find *)",
+      "Bash(rtk grep *)",
+      "Bash(rtk ls *)"
+    ]
+  },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true
   },
