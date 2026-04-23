@@ -21,7 +21,8 @@ CREATE OR ALTER PROCEDURE dbo.usp_wrapper_CollectPrivilegedInfo
 	@notification_delay_minutes tinyint = 10, /* Send mail only after a gap of x minutes from last mail */ 
 	@truncate_table bit = 1, /* when enabled, table would be truncated */
 	@has_staging_table bit = 1, /* when enabled, assume there is no staging table */
-	@schedule_minutes int = 10 /* schedule for execution in minutes */
+	@schedule_minutes int = 10, /* schedule for execution in minutes */
+	@email_delivery_enabled BIT = 1 /* When 0, suppresses all email delivery */
 )
 AS 
 BEGIN
@@ -76,12 +77,6 @@ BEGIN
 			@_errorLine int,
 			@_errorMessage nvarchar(4000);
 
-	DECLARE @email_delivery_enabled BIT = ISNULL(
-	    (SELECT TOP 1 CONVERT(BIT, param_value)
-	     FROM dbo.sma_params
-	     WHERE param_key = 'email_delivery_enabled'),
-	    1
-	);
 	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	SET @_params = N'@verbose tinyint, @truncate_table bit, @has_staging_table bit, @schedule_minutes int';

@@ -17,7 +17,8 @@ CREATE OR ALTER PROCEDURE dbo.usp_collect_file_io_stats
 	@verbose tinyint = 0, /* 0 - no messages, 1 - debug messages, 2 = debug messages + table results */
 	@recipients varchar(500) = 'dba_team@gmail.com', /* Folks who receive the failure mail */
 	@alert_key varchar(100) = 'Collect-FileIOStats', /* Subject of Failure Mail */
-	@send_error_mail bit = 1 /* Send mail on failure */
+	@send_error_mail bit = 1, /* Send mail on failure */
+	@email_delivery_enabled BIT = 1
 )
 AS 
 BEGIN
@@ -65,12 +66,6 @@ BEGIN
 			@_errorLine int,
 			@_errorMessage nvarchar(4000);
 
-	DECLARE @email_delivery_enabled BIT = ISNULL(
-	    (SELECT TOP 1 CONVERT(BIT, param_value)
-	     FROM dbo.sma_params
-	     WHERE param_key = 'email_delivery_enabled'),
-	    1
-	);
 	IF @email_delivery_enabled = 0 SET @send_error_mail = 0;
 
 	BEGIN TRY
