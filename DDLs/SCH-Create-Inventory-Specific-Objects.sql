@@ -1041,9 +1041,13 @@ begin
 	declare @body_html nvarchar(max);
 	declare @footer_html nvarchar(max);
 	declare @dba_team_email_id varchar(125) = 'dba_team@gmail.com';
+	declare @email_delivery_enabled bit;
 
 	if LEFT(@dba_team_email_id,CHARINDEX('@',@dba_team_email_id)-1) = 'dba_team'
 		select top 1 @dba_team_email_id = dba_group_mail_id from dbo.instance_details where is_enabled = 1 and is_alias = 0;
+
+	select @email_delivery_enabled = ISNULL(CONVERT(BIT, param_value), 1)
+	from dbo.sma_params where param_key = 'email_delivery_enabled';
 
 	if exists (select * from deleted) and exists (select * from inserted)
 	begin
@@ -1090,9 +1094,10 @@ begin
 	end
 
 	-- Check if sql_instance has been 'Disabled'
-	if @action_type = 'update' 
-		and exists (select * from deleted d join inserted i on i.sql_instance = d.sql_instance and i.host_name = d.host_name 
+	if @action_type = 'update'
+		and exists (select * from deleted d join inserted i on i.sql_instance = d.sql_instance and i.host_name = d.host_name
 					where i.is_enabled = 0 and d.is_enabled = 1 and i.is_alias = 0)
+		and @email_delivery_enabled = 1
 	begin
 		set @subject = 'SQLMonitor Monitoring Disabled - '+convert(varchar,@current_time,120);
 		set @body_html = N'<H1>SQLMonitor Monitoring Disabled - '+convert(varchar,@current_time,120)+'</H1>'
@@ -1129,7 +1134,8 @@ begin
 
 	-- Check if sql_instance is deleted
 	if @action_type = 'delete'
-		and exists (select * from deleted d	where d.is_alias = 0)
+		and exists (select * from deleted d where d.is_alias = 0)
+		and @email_delivery_enabled = 1
 	begin
 		set @subject = 'SQLMonitor Monitoring - Record Removed - '+convert(varchar,@current_time,120);
 		set @body_html = N'<H1>Server Removed from SQLMonitor Table - '+convert(varchar,@current_time,120)+'</H1>'
