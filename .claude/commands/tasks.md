@@ -5,7 +5,7 @@ This command is managed by kyos-cli.
 You can:
 
 - Add repo-specific notes/rules below to enrich the managed version, or
-- Replace this file entirely and (optionally) remove the “Full definition” link to rely only on yours.
+- Replace this file entirely and (optionally) remove the "Full definition" link to rely only on yours.
 
 - Full definition: [../../.kyos/claude/commands/tasks.md](../../.kyos/claude/commands/tasks.md)
 
