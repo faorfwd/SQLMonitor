@@ -25,6 +25,67 @@ eliminates the N+1 pattern and makes the new preamble zero-marginal-cost in thes
 
 ---
 
+## Installation Modes
+
+### Mode definitions
+
+SQLMonitor supports two topologies. The same SQL and PowerShell code paths serve both;
+the difference is which server the installer targets and where jobs execute.
+
+**Distributed** — every baseline is also its own inventory. Each server hosts a
+complete install (`SCH-Create-All-Objects.sql` + `SCH-Create-Inventory-Specific-Objects.sql`).
+T-SQL and PowerShell jobs run locally. The installer is invoked once per server with
+`-SqlInstanceToBaseline <server> -InventoryServer <same-server>`.
+
+**Centralized** — one dedicated inventory server; one or more remote baselines. Only
+the inventory receives `SCH-Create-Inventory-Specific-Objects.sql`. Remote baselines
+receive `SCH-Create-All-Objects.sql` only. All SQL Agent jobs execute at the inventory
+(`-SqlInstanceForTsqlJobs <inventory> -SqlInstanceForPowershellJobs <inventory>`). The
+installer is invoked once with `$SqlInstanceToBaseline = $InventoryServer` to install
+the inventory, then once per remote baseline with `$SqlInstanceToBaseline = <baseline>`
+and both job-server params pointing back to the inventory.
+
+### Where `dbo.sma_params` and the flag live
+
+`SCH-Create-Inventory-Specific-Objects.sql` (which seeds `email_delivery_enabled`) runs
+only when `$InventoryServer -eq $SqlInstanceToBaseline`. This means:
+
+| Mode | Where the flag row lives |
+|------|--------------------------|
+| Distributed | Local `DBA.dbo.sma_params` on each server (each is its own inventory) |
+| Centralized | `DBA.dbo.sma_params` on the inventory server only |
+
+### Where collection procs execute and read the flag
+
+Every email-sending proc reads `dbo.sma_params` with a two-part name (no server
+qualifier). The name resolves to the database of the connection that is executing the
+proc — always the server where T-SQL jobs run (`$SqlInstanceForTsqlJobs`).
+
+| Mode | Proc executes at | `dbo.sma_params` resolved | Flag row present? |
+|------|-----------------|--------------------------|-------------------|
+| Distributed | Local server (= inventory) | Local `DBA` | Yes ✓ |
+| Centralized — inventory install | Inventory | Inventory `DBA` | Yes ✓ |
+| Centralized — remote baseline install | Inventory (jobs run there) | Inventory `DBA` | Yes ✓ |
+
+No preamble SQL changes are needed to support either mode.
+
+### `SkipMailProfileCheck` (E2) across modes
+
+The mail-profile validation at line 2260 runs against `$conSqlInstanceToBaseline`.
+
+- **Distributed**: baseline = inventory → the check targets the mail-enabled server. When
+  `-EnableEmailAlerts:$false`, E2 sets `$SkipMailProfileCheck = $true` and the check is
+  bypassed. Correct.
+- **Centralized, inventory install**: `$conSqlInstanceToBaseline` = inventory → same
+  server that would send mail. E2 bypass is still correct.
+- **Centralized, remote baseline install**: `$conSqlInstanceToBaseline` = remote
+  baseline, which typically has no mail profile. The check would always fail or be
+  vacuous anyway; when `-EnableEmailAlerts:$false`, E2 skips it. Correct (the mail
+  profile that matters lives on the inventory, which was validated during the inventory
+  install).
+
+---
+
 ## Data Layer
 
 ### `dbo.sma_params` seed row
@@ -178,6 +239,18 @@ Must execute before the `if(-not $SkipMailProfileCheck)` block that validates
 
 ### E3 — Write to `sma_params` (after the DDL step that runs SCH-Create-Inventory-Specific-Objects.sql)
 
+Uses `$conInventoryServer` — the same connection used to execute
+`SCH-Create-Inventory-Specific-Objects.sql` (established at line ~2618 in the current
+installer). This is correct for both installation modes:
+
+- **Distributed** (`$InventoryServer = $SqlInstanceToBaseline`): `$conInventoryServer`
+  resolves to the local server, which is both the baseline and the inventory.
+- **Centralized** (`$InventoryServer ≠ $SqlInstanceToBaseline`): `$conInventoryServer`
+  resolves to the central inventory, where collection procs execute and read
+  `dbo.sma_params`. When installing a remote baseline in centralized mode, E3 still
+  writes to the inventory — not the baseline — so the flag is always on the server
+  that enforces it.
+
 Only fires when the caller explicitly passed the flag (detected via
 `$PSBoundParameters.ContainsKey`):
 
@@ -191,7 +264,7 @@ SET    param_value = '$emailValue',
        remarks     = '$emailReason'
 WHERE  param_key   = 'email_delivery_enabled';
 "@
-    $conSqlInstanceToBaseline |
+    $conInventoryServer |
         Invoke-DbaQuery -Database $InventoryDatabase -Query $sqlUpsert `
                         -EnableException -Verbose:$false -Debug:$false
 }
@@ -220,7 +293,9 @@ In `Wrapper-Samples/Wrapper-InstallSQLMonitor.ps1`, add a commented line in the
 |------|-----------|
 | Missing `email_delivery_enabled` row (pre-DDL upgrade) | `ISNULL(..., 1)` in preamble — absent row = enabled, no behavior change |
 | Developer adds a new mail-sending proc and omits the preamble | Verification step 3 (`grep email_delivery_enabled`) catches it during code review |
-| Combined pivot returns wrong `@send_error_mail` if row has no `send_sqlmonitor_job_failure_mail` | `MAX(CASE ...)` returns NULL → `ISNULL` not applied here, but downstream `IF @send_error_mail = 1` treats NULL as false — safe; same as today |
+| Combined pivot returns wrong `@send_error_mail` if row has no `send_sqlmonitor_job_failure_mail` | `MAX(CASE ...)` returns NULL → downstream `IF @send_error_mail = 1` treats NULL as false — safe; same as today |
+| Centralized: E3 uses wrong connection (`$conSqlInstanceToBaseline` instead of `$conInventoryServer`) | E3 explicitly uses `$conInventoryServer -Database $InventoryDatabase`; writes always land on inventory |
+| Centralized: remote baseline install passes `-EnableEmailAlerts:$false` and writes to inventory; later inventory re-install overwrites | Idempotent UPDATE; last explicit pass of the flag wins. Document in wrapper sample that the flag is inventory-scoped. |
 
 ---
 
@@ -231,7 +306,9 @@ In `Wrapper-Samples/Wrapper-InstallSQLMonitor.ps1`, add a commented line in the
 3. `grep -rn "email_delivery_enabled" DDLs/` — expect **1** seed row + **15** preambles/pivots.
 4. `grep -n "EnableEmailAlerts" SQLMonitor/Install-SQLMonitor.ps1` — expect **3** hits
    (declaration, auto-skip block, sma_params UPDATE block).
-5. Manual smoke test:
+5. `grep -n "conInventoryServer" SQLMonitor/Install-SQLMonitor.ps1` — E3 block must
+   reference `$conInventoryServer`, not `$conSqlInstanceToBaseline`.
+6. Manual smoke test:
    ```sql
    UPDATE dbo.sma_params SET param_value = '0' WHERE param_key = 'email_delivery_enabled';
    DECLARE @before DATETIME = GETDATE();
